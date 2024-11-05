@@ -1,5 +1,6 @@
 import heapq
 
+# Task 3
 # Define the graph as an adjacency list with variable travel times
 # Each island (node) has neighbors with the travel times to reach them
 # Sample Graph:
@@ -68,7 +69,6 @@ def distribute_resource(graph, origin, islands, num_canoes):
 
     return trips
 
-
 # Example use:
 origin = 'origin'
 islands = ['origin', 'island1', 'island2', 'island3', 'island4', 'island5']
@@ -80,3 +80,52 @@ for trip in trips:
     canoe_id, start, destination, time = trip
     print(f"Canoe went from {start} to {destination}, taking {time} units of time")
 print("\nDistribution Finished");
+
+
+# Task 2
+# Using graph variable above as an adjacency list with variable travel times
+# Define the capacities of routes as a separate dictionary
+# Each key is a tuple (start, end) representing the route and its max capacity
+capacities = {
+    ('origin', 'island1'): 50,
+    ('origin', 'island2'): 30,
+    ('island1', 'island3'): 20,
+    ('island1', 'island4'): 15,
+    ('island2', 'island4'): 25,
+    ('island3', 'island5'): 10,
+    ('island4', 'island5'): 40
+}
+
+def spread_resource_across_islands(graph, capacities, start, initial_resource):
+    # Priority queue to manage the islands by shortest travel time
+    pq = [(0, start, initial_resource)]  # (travel_time, current_island, available_resource)
+    # Dictionary to track resources received at each island
+    resources_distributed = {island: 0 for island in graph}
+    resources_distributed[start] = initial_resource
+    
+    # Dijkstra's algorithm with limited capacity constraint
+    while pq:
+        current_time, island, available_resource = heapq.heappop(pq)
+
+        # Distribute resource to neighboring islands
+        for neighbor, travel_time in graph[island]:
+            new_time = current_time + travel_time
+            route_capacity = capacities.get((island, neighbor), 0)
+            
+            # Determine the amount of resource to send on this route
+            resource_to_send = min(available_resource, route_capacity)
+
+            # Only continue if we have resources to send
+            if resource_to_send > 0:
+                # Add resource to the neighbor's distribution
+                resources_distributed[neighbor] += resource_to_send
+
+                # Push neighbor into the priority queue with updated travel time and resource
+                heapq.heappush(pq, (new_time, neighbor, resource_to_send))
+
+    return resources_distributed
+
+# Example usage
+initial_resource = 100  # Starting resource amount on 'Ni'ihau'
+result = spread_resource_across_islands(graph, capacities, 'origin', initial_resource)
+print("Resource distribution across islands:", result)
